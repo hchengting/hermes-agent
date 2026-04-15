@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 _DEFAULT_API_URL = "https://api.hindsight.vectorize.io"
 _DEFAULT_LOCAL_URL = "http://localhost:8888"
 _MIN_CLIENT_VERSION = "0.4.22"
-_DEFAULT_TIMEOUT = 120  # seconds — cloud API can take 30-40s per request
+_DEFAULT_TIMEOUT = 360  # seconds — cloud API can take 30-40s per request
 _DEFAULT_IDLE_TIMEOUT = 300  # seconds — Hindsight embedded daemon default
 _VALID_BUDGETS = {"low", "mid", "high"}
 _PROVIDER_DEFAULT_MODELS = {
@@ -583,7 +583,7 @@ class HindsightMemoryProvider(MemoryProvider):
             try:
                 subprocess.run(
                     [uv_path, "pip", "install", "--python", sys.executable, "--quiet", "--upgrade"] + deps_to_install,
-                    check=True, timeout=120, capture_output=True,
+                    check=True, timeout=360, capture_output=True,
                 )
                 print("  ✓ Dependencies up to date")
             except Exception as e:
@@ -947,7 +947,7 @@ class HindsightMemoryProvider(MemoryProvider):
                         subprocess.run(
                             [uv_path, "pip", "install", "--python", sys.executable,
                              "--quiet", "--upgrade", f"hindsight-client>={_MIN_CLIENT_VERSION}"],
-                            check=True, timeout=120, capture_output=True,
+                            check=True, timeout=360, capture_output=True,
                         )
                         logger.info("hindsight-client upgraded to >=%s", _MIN_CLIENT_VERSION)
                     except Exception as e:
@@ -1397,7 +1397,7 @@ class HindsightMemoryProvider(MemoryProvider):
                 if not resp.results:
                     return json.dumps({"result": "No relevant memories found."})
                 lines = [f"{i}. {r.text}" for i, r in enumerate(resp.results, 1)]
-                return json.dumps({"result": "\n".join(lines)})
+                return json.dumps({"result": "\n".join(lines)}, ensure_ascii=False)
             except Exception as e:
                 logger.warning("hindsight_recall failed: %s", e, exc_info=True)
                 return tool_error(f"Failed to search memory: {e}")
@@ -1415,7 +1415,7 @@ class HindsightMemoryProvider(MemoryProvider):
                     )
                 )
                 logger.debug("Tool hindsight_reflect: response_len=%d", len(resp.text or ""))
-                return json.dumps({"result": resp.text or "No relevant memories found."})
+                return json.dumps({"result": resp.text or "No relevant memories found."}, ensure_ascii=False)
             except Exception as e:
                 logger.warning("hindsight_reflect failed: %s", e, exc_info=True)
                 return tool_error(f"Failed to reflect: {e}")
