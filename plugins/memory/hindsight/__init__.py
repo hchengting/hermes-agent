@@ -81,7 +81,7 @@ def _get_loop() -> asyncio.AbstractEventLoop:
         return _loop
 
 
-def _run_sync(coro, timeout: float = 120.0):
+def _run_sync(coro, timeout: float = 360.0):
     """Schedule *coro* on the shared loop and block until done."""
     loop = _get_loop()
     future = asyncio.run_coroutine_threadsafe(coro, loop)
@@ -372,7 +372,7 @@ class HindsightMemoryProvider(MemoryProvider):
             try:
                 subprocess.run(
                     [uv_path, "pip", "install", "--python", sys.executable, "--quiet", "--upgrade"] + deps_to_install,
-                    check=True, timeout=120, capture_output=True,
+                    check=True, timeout=360, capture_output=True,
                 )
                 print(f"  ✓ Dependencies up to date")
             except Exception as e:
@@ -529,7 +529,7 @@ class HindsightMemoryProvider(MemoryProvider):
                 self._client = HindsightEmbedded(**kwargs)
             else:
                 from hindsight_client import Hindsight
-                kwargs = {"base_url": self._api_url, "timeout": 30.0}
+                kwargs = {"base_url": self._api_url, "timeout": 360.0}
                 if self._api_key:
                     kwargs["api_key"] = self._api_key
                 logger.debug("Creating Hindsight cloud client (url=%s, has_key=%s)",
@@ -555,7 +555,7 @@ class HindsightMemoryProvider(MemoryProvider):
                         subprocess.run(
                             [uv_path, "pip", "install", "--python", sys.executable,
                              "--quiet", "--upgrade", f"hindsight-client>={_MIN_CLIENT_VERSION}"],
-                            check=True, timeout=120, capture_output=True,
+                            check=True, timeout=360, capture_output=True,
                         )
                         logger.info("hindsight-client upgraded to >=%s", _MIN_CLIENT_VERSION)
                     except Exception as e:
@@ -888,7 +888,7 @@ class HindsightMemoryProvider(MemoryProvider):
         if session_id:
             self._session_id = str(session_id).strip()
 
-        turn = json.dumps(self._build_turn_messages(user_content, assistant_content))
+        turn = json.dumps(self._build_turn_messages(user_content, assistant_content), ensure_ascii=False)
         self._session_turns.append(turn)
         self._turn_counter += 1
         self._turn_index = self._turn_counter
@@ -986,7 +986,7 @@ class HindsightMemoryProvider(MemoryProvider):
                 if not resp.results:
                     return json.dumps({"result": "No relevant memories found."})
                 lines = [f"{i}. {r.text}" for i, r in enumerate(resp.results, 1)]
-                return json.dumps({"result": "\n".join(lines)})
+                return json.dumps({"result": "\n".join(lines)}, ensure_ascii=False)
             except Exception as e:
                 logger.warning("hindsight_recall failed: %s", e, exc_info=True)
                 return tool_error(f"Failed to search memory: {e}")
@@ -1002,7 +1002,7 @@ class HindsightMemoryProvider(MemoryProvider):
                     bank_id=self._bank_id, query=query, budget=self._budget
                 ))
                 logger.debug("Tool hindsight_reflect: response_len=%d", len(resp.text or ""))
-                return json.dumps({"result": resp.text or "No relevant memories found."})
+                return json.dumps({"result": resp.text or "No relevant memories found."}, ensure_ascii=False)
             except Exception as e:
                 logger.warning("hindsight_reflect failed: %s", e, exc_info=True)
                 return tool_error(f"Failed to reflect: {e}")
