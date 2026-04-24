@@ -316,6 +316,7 @@ _URL_TO_PROVIDER: Dict[str, str] = {
     "api.gmi-serving.com": "gmi",
     "tokenhub.tencentmaas.com": "tencent-tokenhub",
     "ollama.com": "ollama-cloud",
+    "nano-gpt.com": "nano-gpt",
 }
 
 
